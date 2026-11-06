@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ParkirKu - Smart Parking Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-6 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+      <div>
+        <h1 class="text-3xl font-bold">ParkirKu System</h1>
+        <p class="text-sm opacity-90">Sistem Pengelolaan Parkir Mandiri (Client-Side HTML/CSS/JS)</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="resetData()" class="bg-red-500 hover:bg-red-700 text-xs px-3 py-2 rounded font-semibold transition">Reset Data Parkir</button>
+        <span class="bg-blue-800 text-xs px-3 py-2 rounded-full flex items-center">Gate Standalone</span>
+      </div>
+    </header>
+
+    <!-- Slot Real-Time -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-bold mb-4 text-gray-800">Status Kapasitas Slot Parkir</h2>
+      <div id="slotContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Diisi otomatis via JS -->
+      </div>
+    </div>
+
+    <!-- Gate Operations -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- 1. Gate Masuk -->
+      <div class="bg-white p-6 rounded-lg shadow flex flex-col justify-between">
+        <div>
+          <h2 class="text-lg font-bold mb-4 text-emerald-600 border-b pb-2">1. Gate Masuk (Cetak Tiket)</h2>
+          <form id="formMasuk" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Plat Nomor Kendaraan</label>
+              <input type="text" id="platMasuk" class="w-full border p-2 rounded uppercase font-semibold text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="B 1234 ABC" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Jenis Kendaraan</label>
+              <select id="kategoriMasuk" class="w-full border p-2 rounded bg-white text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none">
+                <option value="Motor">Motor (Rp 2.000/jam - Max 10rb)</option>
+                <option value="Mobil">Mobil (Rp 5.000/jam - Max 30rb)</option>
+                <option value="Truk">Truk (Rp 10.000/jam - Max 50rb)</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 transition">
+              Generate & Cetak Tiket
+            </button>
+          </form>
+        </div>
+        <div id="resultMasuk" class="mt-4 p-4 bg-emerald-50 rounded text-sm hidden border border-emerald-200"></div>
+      </div>
+
+      <!-- 2. Gate Keluar (Scan Tiket) -->
+      <div class="bg-white p-6 rounded-lg shadow flex flex-col justify-between">
+        <div>
+          <h2 class="text-lg font-bold mb-4 text-blue-600 border-b pb-2">2. Gate Keluar (Scan Tiket)</h2>
+          <form id="formKeluar" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Kode Tiket / Barcode</label>
+              <input type="text" id="kodeKeluar" class="w-full border p-2 rounded uppercase font-semibold text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="PKR-XXXXXXXXX" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition">
+              Proses Pembayaran & Buka Palang
+            </button>
+          </form>
+        </div>
+        <div id="resultKeluar" class="mt-4 p-4 bg-blue-50 rounded text-sm hidden border border-blue-200"></div>
+      </div>
+
+      <!-- 3. Penanganan Tiket Hilang -->
+      <div class="bg-white p-6 rounded-lg shadow flex flex-col justify-between">
+        <div>
+          <h2 class="text-lg font-bold mb-4 text-amber-600 border-b pb-2">3. Tiket Hilang (Denda STNK)</h2>
+          <form id="formHilang" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Plat Nomor (Sesuai STNK)</label>
+              <input type="text" id="platHilang" class="w-full border p-2 rounded uppercase font-semibold text-gray-800 focus:ring-2 focus:ring-amber-500 outline-none" placeholder="B 1234 ABC" required>
+            </div>
+            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded font-semibold hover:bg-amber-700 transition">
+              Proses Denda & Buka Palang
+            </button>
+          </form>
+        </div>
+        <div id="resultHilang" class="mt-4 p-4 bg-amber-50 rounded text-sm hidden border border-amber-200"></div>
+      </div>
+
+    </div>
+
+    <!-- Tabel Monitoring Transaksi Aktif & Riwayat -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-bold mb-4 text-gray-800">Daftar Transaksi Parkir</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+          <thead>
+            <tr class="bg-gray-100 border-b text-gray-700">
+              <th class="p-3">Kode Tiket</th>
+              <th class="p-3">Plat Nomor</th>
+              <th class="p-3">Jenis</th>
+              <th class="p-3">Waktu Masuk</th>
+              <th class="p-3">Waktu Keluar</th>
+              <th class="p-3">Total Bayar</th>
+              <th class="p-3">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tabelTransaksi">
+            <!-- Row transaksi diisi via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // KONFIGURASI DAN STATE MANAGEMENT
+    // ==========================================
+    const KAPASITAS_SLOT = {
+      Motor: { max: 50, tarif: 2000, maxTarif: 10000, denda: 25000 },
+      Mobil: { max: 30, tarif: 5000, maxTarif: 30000, denda: 50000 },
+      Truk:  { max: 10, tarif: 10000, maxTarif: 50000, denda: 50000 }
+    };
+
+    // Ambil data transaksi dari localStorage (jika ada)
+    let daftarTransaksi = JSON.parse(localStorage.getItem('parkirku_transaksi')) || [];
+
+    function simpanData() {
+      localStorage.setItem('parkirku_transaksi', JSON.stringify(daftarTransaksi));
+      renderUI();
+    }
+
+    function resetData() {
+      if (confirm("Apakah Anda yakin ingin mengosongkan semua data transaksi parkir?")) {
+        daftarTransaksi = [];
+        simpanData();
+      }
+    }
+
+    // ==========================================
+    // LOGIKA PERHITUNGAN DAN UI
+    // ==========================================
+
+    function hitungTarif(waktuMasukStr, jenisKendaraan) {
+      const masuk = new Date(waktuMasukStr);
+      const keluar = new Date();
+      const diffMs = keluar - masuk;
+      
+      // Hitung jam (dibulatkan ke atas, minimal 1 jam)
+      let durasiJam = Math.ceil(diffMs / (1000 * 60 * 60));
+      if (durasiJam <= 0) durasiJam = 1;
+
+      const conf = KAPASITAS_SLOT[jenisKendaraan];
+      let total = durasiJam * conf.tarif;
+      if (total > conf.maxTarif) {
+        total = conf.maxTarif;
+      }
+
+      return { durasiJam, total, waktuKeluar: keluar.toISOString() };
+    }
+
+    function renderUI() {
+      // 1. Render Status Slot Parkir
+      const slotContainer = document.getElementById('slotContainer');
+      slotContainer.innerHTML = '';
+
+      Object.keys(KAPASITAS_SLOT).forEach(kat => {
+        const terpakai = daftarTransaksi.filter(t => t.jenis === kat && t.status === 'MASUK').length;
+        const sisa = KAPASITAS_SLOT[kat].max - terpakai;
+
+        slotContainer.innerHTML += `
+          <div class="p-4 bg-gray-50 border rounded-lg text-center shadow-sm">
+            <h3 class="font-bold text-gray-700 text-lg">${kat}</h3>
+            <p class="text-3xl font-extrabold ${sisa === 0 ? 'text-red-600' : 'text-blue-600'} my-1">${sisa} / ${KAPASITAS_SLOT[kat].max}</p>
+            <span class="text-xs ${sisa === 0 ? 'text-red-500 font-bold' : 'text-gray-500'}">${sisa === 0 ? 'Kapasitas Penuh' : 'Slot Tersedia'}</span>
+          </div>
+        `;
+      });
+
+      // 2. Render Tabel Transaksi
+      const tabel = document.getElementById('tabelTransaksi');
+      if (daftarTransaksi.length === 0) {
+        tabel.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada data transaksi.</td></tr>`;
+        return;
+      }
+
+      tabel.innerHTML = daftarTransaksi.slice().reverse().map(t => {
+        let statusBadge = '';
+        if (t.status === 'MASUK') {
+          statusBadge = `<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-semibold">Parkir Aktif</span>`;
+        } else if (t.status === 'SELESAI') {
+          statusBadge = `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">Selesai</span>`;
+        } else {
+          statusBadge = `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Tiket Hilang</span>`;
+        }
+
+        const tknMasuk = new Date(t.waktuMasuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const tknKeluar = t.waktuKeluar ? new Date(t.waktuKeluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+        return `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-3 font-mono font-bold text-gray-700">${t.kode}</td>
+            <td class="p-3 font-semibold">${t.plat}</td>
+            <td class="p-3">${t.jenis}</td>
+            <td class="p-3 text-gray-600">${tknMasuk}</td>
+            <td class="p-3 text-gray-600">${tknKeluar}</td>
+            <td class="p-3 font-bold text-emerald-700">Rp ${(t.totalBayar || 0).toLocaleString()}</td>
+            <td class="p-3">${statusBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // EVENT HANDLERS
+    // ==========================================
+
+    // Form 1: Transaksi Masuk
+    document.getElementById('formMasuk').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const plat = document.getElementById('platMasuk').value.trim().toUpperCase();
+      const jenis = document.getElementById('kategoriMasuk').value;
+
+      // Cek ketersediaan slot
+      const terpakai = daftarTransaksi.filter(t => t.jenis === jenis && t.status === 'MASUK').length;
+      if (terpakai >= KAPASITAS_SLOT[jenis].max) {
+        alert(`Maaf, slot parkir untuk ${jenis} sudah penuh!`);
+        return;
+      }
+
+      const kode = 'PKR-' + Math.floor(100000 + Math.random() * 900000);
+      const waktuMasuk = new Date().toISOString();
+
+      const transaksiBaru = {
+        kode,
+        plat,
+        jenis,
+        waktuMasuk,
+        waktuKeluar: null,
+        totalBayar: 0,
+        status: 'MASUK'
+      };
+
+      daftarTransaksi.push(transaksiBaru);
+      simpanData();
+
+      const resDiv = document.getElementById('resultMasuk');
+      resDiv.classList.remove('hidden');
+      resDiv.innerHTML = `
+        <p class="font-bold text-emerald-700">✓ Tiket Berhasil Dicetak!</p>
+        <p class="mt-1">Kode: <b class="bg-emerald-200 px-2 py-0.5 rounded font-mono text-emerald-900 select-all">${kode}</b></p>
+        <p>Plat: <b>${plat}</b> (${jenis})</p>
+      `;
+
+      document.getElementById('platMasuk').value = '';
+    });
+
+    // Form 2: Transaksi Keluar (Scan Tiket)
+    document.getElementById('formKeluar').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const kode = document.getElementById('kodeKeluar').value.trim().toUpperCase();
+      const resDiv = document.getElementById('resultKeluar');
+      resDiv.classList.remove('hidden');
+
+      const item = daftarTransaksi.find(t => t.kode === kode && t.status === 'MASUK');
+
+      if (!item) {
+        resDiv.className = "mt-4 p-4 bg-red-50 rounded text-sm border border-red-200 text-red-600 font-bold";
+        resDiv.innerHTML = "❌ Tiket tidak ditemukan atau sudah selesai!";
+        return;
+      }
+
+      const hasil = hitungTarif(item.waktuMasuk, item.jenis);
+      item.waktuKeluar = hasil.waktuKeluar;
+      item.totalBayar = hasil.total;
+      item.status = 'SELESAI';
+
+      simpanData();
+
+      resDiv.className = "mt-4 p-4 bg-blue-50 rounded text-sm border border-blue-200";
+      resDiv.innerHTML = `
+        <p class="font-bold text-blue-700">✓ Transaksi Selesai!</p>
+        <p class="mt-1">Plat Nomor: <b>${item.plat}</b> (${item.jenis})</p>
+        <p>Durasi Parkir: <b>${hasil.durasiJam} Jam</b></p>
+        <p class="text-base font-bold text-emerald-700 mt-1">Total Tagihan: Rp ${hasil.total.toLocaleString()}</p>
+      `;
+
+      document.getElementById('kodeKeluar').value = '';
+    });
+
+    // Form 3: Tiket Hilang
+    document.getElementById('formHilang').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const plat = document.getElementById('platHilang').value.trim().toUpperCase();
+      const resDiv = document.getElementById('resultHilang');
+      resDiv.classList.remove('hidden');
+
+      const item = daftarTransaksi.find(t => t.plat === plat && t.status === 'MASUK');
+
+      if (!item) {
+        resDiv.className = "mt-4 p-4 bg-red-50 rounded text-sm border border-red-200 text-red-600 font-bold";
+        resDiv.innerHTML = "❌ Kendaraan dengan plat nomor tersebut tidak ditemukan di area parkir!";
+        return;
+      }
+
+      const hasil = hitungTarif(item.waktuMasuk, item.jenis);
+      const denda = KAPASITAS_SLOT[item.jenis].denda;
+      const grandTotal = hasil.total + denda;
+
+      item.waktuKeluar = hasil.waktuKeluar;
+      item.totalBayar = grandTotal;
+      item.status = 'HILANG';
+
+      simpanData();
+
+      resDiv.className = "mt-4 p-4 bg-amber-50 rounded text-sm border border-amber-200";
+      resDiv.innerHTML = `
+        <p class="font-bold text-amber-800">✓ Tiket Hilang Diproses!</p>
+        <p class="mt-1">Plat: <b>${item.plat}</b> (${item.jenis})</p>
+        <p>Biaya Parkir Normal: Rp ${hasil.total.toLocaleString()}</p>
+        <p>Denda Tiket Hilang: <b class="text-red-600">Rp ${denda.toLocaleString()}</b></p>
+        <hr class="my-2 border-amber-300">
+        <p class="text-base font-bold text-emerald-700">Total Tagihan: Rp ${grandTotal.toLocaleString()}</p>
+      `;
+
+      document.getElementById('platHilang').value = '';
+    });
+
+    // Inisialisasi awal saat halaman di-load
+    renderUI();
+  </script>
+</body>
+</html>
