@@ -6,32 +6,62 @@
   <title>ParkirKu - Smart Parking Management System</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+<body class="bg-gray-100 min-h-screen">
 
-  <div class="max-w-5xl mx-auto space-y-6">
+  <!-- ================= HALAMAN LOGIN ================= -->
+  <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border border-gray-100">
+      <div class="text-center mb-6">
+        <h1 class="text-3xl font-extrabold text-blue-600">ParkirKu</h1>
+        <p class="text-sm text-gray-500 mt-1">Smart Parking Management System</p>
+      </div>
+
+      <form id="formLogin" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Username</label>
+          <input type="text" id="username" class="w-full border p-2.5 rounded focus:ring-2 focus:ring-blue-500 outline-none mt-1" placeholder="Masukkan username" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" id="password" class="w-full border p-2.5 rounded focus:ring-2 focus:ring-blue-500 outline-none mt-1" placeholder="Masukkan password" required>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition">
+          Masuk ke Sistem
+        </button>
+      </form>
+
+      <div id="loginError" class="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded hidden text-center"></div>
+
+      <!-- Informasi Akun Testing -->
+      <div class="mt-6 p-4 bg-gray-50 rounded-lg text-xs text-gray-600 space-y-1">
+        <p class="font-bold text-gray-700">Akun Demo (Default):</p>
+        <p>• <b>Admin</b>: Username <code>admin</code> | Password <code>admin123</code></p>
+        <p>• <b>Petugas Gate</b>: Username <code>petugas</code> | Password <code>petugas123</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= DASHBOARD UTAMA (SETELAH LOGIN) ================= -->
+  <div id="dashboardSection" class="hidden min-h-screen p-4 md:p-8 space-y-6 max-w-6xl mx-auto">
     <!-- Header -->
     <header class="bg-blue-600 text-white p-6 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
       <div>
         <h1 class="text-3xl font-bold">ParkirKu System</h1>
-        <p class="text-sm opacity-90">Sistem Pengelolaan Parkir Mandiri (Client-Side HTML/CSS/JS)</p>
+        <p class="text-sm opacity-90">Login sebagai: <span id="userRoleBadge" class="font-bold capitalize bg-blue-800 px-2.5 py-0.5 rounded-full text-xs"></span> (<span id="userNameDisplay"></span>)</p>
       </div>
       <div class="flex gap-2">
-        <button onclick="resetData()" class="bg-red-500 hover:bg-red-700 text-xs px-3 py-2 rounded font-semibold transition">Reset Data Parkir</button>
-        <span class="bg-blue-800 text-xs px-3 py-2 rounded-full flex items-center">Gate Standalone</span>
+        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-2 rounded font-semibold transition">Logout</button>
       </div>
     </header>
 
-    <!-- Slot Real-Time -->
+    <!-- Monitoring Slot Parkir Real-Time -->
     <div class="bg-white p-6 rounded-lg shadow">
       <h2 class="text-xl font-bold mb-4 text-gray-800">Status Kapasitas Slot Parkir</h2>
-      <div id="slotContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Diisi otomatis via JS -->
-      </div>
+      <div id="slotContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
     </div>
 
-    <!-- Gate Operations -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      
+    <!-- FITUR KHUSUS PETUGAS (GATE OPERATOR) -->
+    <div id="petugasFeatures" class="grid grid-cols-1 md:grid-cols-3 gap-6 hidden">
       <!-- 1. Gate Masuk -->
       <div class="bg-white p-6 rounded-lg shadow flex flex-col justify-between">
         <div>
@@ -44,9 +74,9 @@
             <div>
               <label class="block text-sm font-medium text-gray-700">Jenis Kendaraan</label>
               <select id="kategoriMasuk" class="w-full border p-2 rounded bg-white text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none">
-                <option value="Motor">Motor (Rp 2.000/jam - Max 10rb)</option>
-                <option value="Mobil">Mobil (Rp 5.000/jam - Max 30rb)</option>
-                <option value="Truk">Truk (Rp 10.000/jam - Max 50rb)</option>
+                <option value="Motor">Motor (Rp 2.000/jam)</option>
+                <option value="Mobil">Mobil (Rp 5.000/jam)</option>
+                <option value="Truk">Truk (Rp 10.000/jam)</option>
               </select>
             </div>
             <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 transition">
@@ -74,7 +104,7 @@
         <div id="resultKeluar" class="mt-4 p-4 bg-blue-50 rounded text-sm hidden border border-blue-200"></div>
       </div>
 
-      <!-- 3. Penanganan Tiket Hilang -->
+      <!-- 3. Tiket Hilang -->
       <div class="bg-white p-6 rounded-lg shadow flex flex-col justify-between">
         <div>
           <h2 class="text-lg font-bold mb-4 text-amber-600 border-b pb-2">3. Tiket Hilang (Denda STNK)</h2>
@@ -90,12 +120,30 @@
         </div>
         <div id="resultHilang" class="mt-4 p-4 bg-amber-50 rounded text-sm hidden border border-amber-200"></div>
       </div>
-
     </div>
 
-    <!-- Tabel Monitoring Transaksi Aktif & Riwayat -->
+    <!-- FITUR KHUSUS ADMIN (REKAP DASBOR & LAPORAN) -->
+    <div id="adminFeatures" class="bg-white p-6 rounded-lg shadow space-y-4 hidden">
+      <h2 class="text-xl font-bold text-gray-800">Ringkasan Pendapatan & Transaksi (Admin Only)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <p class="text-sm text-emerald-600 font-semibold">Total Kendaraan Keluar</p>
+          <p id="adminTotalKendaraan" class="text-2xl font-bold text-emerald-900">0</p>
+        </div>
+        <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p class="text-sm text-blue-600 font-semibold">Total Pendapatan Parkir</p>
+          <p id="adminTotalPendapatan" class="text-2xl font-bold text-blue-900">Rp 0</p>
+        </div>
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <p class="text-sm text-amber-600 font-semibold">Total Kasus Tiket Hilang</p>
+          <p id="adminTotalHilang" class="text-2xl font-bold text-amber-900">0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABEL LOG TRANSAKSI -->
     <div class="bg-white p-6 rounded-lg shadow">
-      <h2 class="text-xl font-bold mb-4 text-gray-800">Daftar Transaksi Parkir</h2>
+      <h2 class="text-xl font-bold mb-4 text-gray-800">Daftar Log Transaksi Parkir</h2>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm border-collapse">
           <thead>
@@ -109,70 +157,107 @@
               <th class="p-3">Status</th>
             </tr>
           </thead>
-          <tbody id="tabelTransaksi">
-            <!-- Row transaksi diisi via JS -->
-          </tbody>
+          <tbody id="tabelTransaksi"></tbody>
         </table>
       </div>
     </div>
   </div>
 
   <script>
-    // ==========================================
-    // KONFIGURASI DAN STATE MANAGEMENT
-    // ==========================================
+    // ================= DATA USER & KONFIGURASI =================
+    const USERS = [
+      { username: 'admin', password: 'admin123', name: 'Admin Manager', role: 'admin' },
+      { username: 'petugas', password: 'petugas123', name: 'Petugas Gate', role: 'petugas' }
+    ];
+
     const KAPASITAS_SLOT = {
       Motor: { max: 50, tarif: 2000, maxTarif: 10000, denda: 25000 },
       Mobil: { max: 30, tarif: 5000, maxTarif: 30000, denda: 50000 },
       Truk:  { max: 10, tarif: 10000, maxTarif: 50000, denda: 50000 }
     };
 
-    // Ambil data transaksi dari localStorage (jika ada)
+    let currentUser = JSON.parse(localStorage.getItem('parkirku_session')) || null;
     let daftarTransaksi = JSON.parse(localStorage.getItem('parkirku_transaksi')) || [];
 
+    // ================= AUTENTIKASI LOGIC =================
+    document.getElementById('formLogin').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value.trim();
+
+      const found = USERS.find(user => user.username === u && user.password === p);
+
+      if (found) {
+        currentUser = found;
+        localStorage.setItem('parkirku_session', JSON.stringify(found));
+        document.getElementById('loginError').classList.add('hidden');
+        checkAuthStatus();
+      } else {
+        const errDiv = document.getElementById('loginError');
+        errDiv.innerText = "Username atau password salah!";
+        errDiv.classList.remove('hidden');
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem('parkirku_session');
+      currentUser = null;
+      checkAuthStatus();
+    }
+
+    function checkAuthStatus() {
+      const loginSection = document.getElementById('loginSection');
+      const dashboardSection = document.getElementById('dashboardSection');
+
+      if (currentUser) {
+        loginSection.classList.add('hidden');
+        dashboardSection.classList.remove('hidden');
+
+        document.getElementById('userNameDisplay').innerText = currentUser.name;
+        document.getElementById('userRoleBadge').innerText = currentUser.role;
+
+        if (currentUser.role === 'admin') {
+          document.getElementById('adminFeatures').classList.remove('hidden');
+          document.getElementById('petugasFeatures').classList.add('hidden');
+        } else {
+          document.getElementById('adminFeatures').classList.add('hidden');
+          document.getElementById('petugasFeatures').classList.remove('hidden');
+        }
+        renderUI();
+      } else {
+        loginSection.classList.remove('hidden');
+        dashboardSection.classList.add('hidden');
+      }
+    }
+
+    // ================= LOGIKA TRANSAKSI & RENDER UI =================
     function simpanData() {
       localStorage.setItem('parkirku_transaksi', JSON.stringify(daftarTransaksi));
       renderUI();
     }
-
-    function resetData() {
-      if (confirm("Apakah Anda yakin ingin mengosongkan semua data transaksi parkir?")) {
-        daftarTransaksi = [];
-        simpanData();
-      }
-    }
-
-    // ==========================================
-    // LOGIKA PERHITUNGAN DAN UI
-    // ==========================================
 
     function hitungTarif(waktuMasukStr, jenisKendaraan) {
       const masuk = new Date(waktuMasukStr);
       const keluar = new Date();
       const diffMs = keluar - masuk;
       
-      // Hitung jam (dibulatkan ke atas, minimal 1 jam)
       let durasiJam = Math.ceil(diffMs / (1000 * 60 * 60));
       if (durasiJam <= 0) durasiJam = 1;
 
       const conf = KAPASITAS_SLOT[jenisKendaraan];
       let total = durasiJam * conf.tarif;
-      if (total > conf.maxTarif) {
-        total = conf.maxTarif;
-      }
+      if (total > conf.maxTarif) total = conf.maxTarif;
 
       return { durasiJam, total, waktuKeluar: keluar.toISOString() };
     }
 
     function renderUI() {
-      // 1. Render Status Slot Parkir
+      // 1. Status Slot
       const slotContainer = document.getElementById('slotContainer');
       slotContainer.innerHTML = '';
-
       Object.keys(KAPASITAS_SLOT).forEach(kat => {
         const terpakai = daftarTransaksi.filter(t => t.jenis === kat && t.status === 'MASUK').length;
         const sisa = KAPASITAS_SLOT[kat].max - terpakai;
-
         slotContainer.innerHTML += `
           <div class="p-4 bg-gray-50 border rounded-lg text-center shadow-sm">
             <h3 class="font-bold text-gray-700 text-lg">${kat}</h3>
@@ -182,7 +267,18 @@
         `;
       });
 
-      // 2. Render Tabel Transaksi
+      // 2. Dashboard Ringkasan Admin
+      if (currentUser && currentUser.role === 'admin') {
+        const selesaiList = daftarTransaksi.filter(t => t.status !== 'MASUK');
+        const totalPendapatan = selesaiList.reduce((sum, t) => sum + (t.totalBayar || 0), 0);
+        const totalHilang = daftarTransaksi.filter(t => t.status === 'HILANG').length;
+
+        document.getElementById('adminTotalKendaraan').innerText = selesaiList.length;
+        document.getElementById('adminTotalPendapatan').innerText = 'Rp ' + totalPendapatan.toLocaleString();
+        document.getElementById('adminTotalHilang').innerText = totalHilang;
+      }
+
+      // 3. Tabel Log Transaksi
       const tabel = document.getElementById('tabelTransaksi');
       if (daftarTransaksi.length === 0) {
         tabel.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada data transaksi.</td></tr>`;
@@ -190,14 +286,11 @@
       }
 
       tabel.innerHTML = daftarTransaksi.slice().reverse().map(t => {
-        let statusBadge = '';
-        if (t.status === 'MASUK') {
-          statusBadge = `<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-semibold">Parkir Aktif</span>`;
-        } else if (t.status === 'SELESAI') {
-          statusBadge = `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">Selesai</span>`;
-        } else {
-          statusBadge = `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Tiket Hilang</span>`;
-        }
+        let statusBadge = t.status === 'MASUK' 
+          ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-semibold">Parkir Aktif</span>`
+          : t.status === 'SELESAI' 
+          ? `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">Selesai</span>`
+          : `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Tiket Hilang</span>`;
 
         const tknMasuk = new Date(t.waktuMasuk).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         const tknKeluar = t.waktuKeluar ? new Date(t.waktuKeluar).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
@@ -216,51 +309,30 @@
       }).join('');
     }
 
-    // ==========================================
-    // EVENT HANDLERS
-    // ==========================================
-
-    // Form 1: Transaksi Masuk
+    // ================= EVENT FORM TRANSAKSI =================
     document.getElementById('formMasuk').addEventListener('submit', (e) => {
       e.preventDefault();
       const plat = document.getElementById('platMasuk').value.trim().toUpperCase();
       const jenis = document.getElementById('kategoriMasuk').value;
 
-      // Cek ketersediaan slot
       const terpakai = daftarTransaksi.filter(t => t.jenis === jenis && t.status === 'MASUK').length;
       if (terpakai >= KAPASITAS_SLOT[jenis].max) {
-        alert(`Maaf, slot parkir untuk ${jenis} sudah penuh!`);
+        alert(`Slot parkir ${jenis} penuh!`);
         return;
       }
 
       const kode = 'PKR-' + Math.floor(100000 + Math.random() * 900000);
-      const waktuMasuk = new Date().toISOString();
-
-      const transaksiBaru = {
-        kode,
-        plat,
-        jenis,
-        waktuMasuk,
-        waktuKeluar: null,
-        totalBayar: 0,
-        status: 'MASUK'
-      };
-
-      daftarTransaksi.push(transaksiBaru);
+      daftarTransaksi.push({
+        kode, plat, jenis, waktuMasuk: new Date().toISOString(), waktuKeluar: null, totalBayar: 0, status: 'MASUK'
+      });
       simpanData();
 
       const resDiv = document.getElementById('resultMasuk');
       resDiv.classList.remove('hidden');
-      resDiv.innerHTML = `
-        <p class="font-bold text-emerald-700">✓ Tiket Berhasil Dicetak!</p>
-        <p class="mt-1">Kode: <b class="bg-emerald-200 px-2 py-0.5 rounded font-mono text-emerald-900 select-all">${kode}</b></p>
-        <p>Plat: <b>${plat}</b> (${jenis})</p>
-      `;
-
+      resDiv.innerHTML = `<p class="font-bold text-emerald-700">✓ Tiket Dicetak!</p><p>Kode: <b>${kode}</b></p><p>Plat: ${plat}</p>`;
       document.getElementById('platMasuk').value = '';
     });
 
-    // Form 2: Transaksi Keluar (Scan Tiket)
     document.getElementById('formKeluar').addEventListener('submit', (e) => {
       e.preventDefault();
       const kode = document.getElementById('kodeKeluar').value.trim().toUpperCase();
@@ -268,10 +340,9 @@
       resDiv.classList.remove('hidden');
 
       const item = daftarTransaksi.find(t => t.kode === kode && t.status === 'MASUK');
-
       if (!item) {
         resDiv.className = "mt-4 p-4 bg-red-50 rounded text-sm border border-red-200 text-red-600 font-bold";
-        resDiv.innerHTML = "❌ Tiket tidak ditemukan atau sudah selesai!";
+        resDiv.innerHTML = "❌ Tiket tidak ditemukan / sudah selesai!";
         return;
       }
 
@@ -279,21 +350,13 @@
       item.waktuKeluar = hasil.waktuKeluar;
       item.totalBayar = hasil.total;
       item.status = 'SELESAI';
-
       simpanData();
 
       resDiv.className = "mt-4 p-4 bg-blue-50 rounded text-sm border border-blue-200";
-      resDiv.innerHTML = `
-        <p class="font-bold text-blue-700">✓ Transaksi Selesai!</p>
-        <p class="mt-1">Plat Nomor: <b>${item.plat}</b> (${item.jenis})</p>
-        <p>Durasi Parkir: <b>${hasil.durasiJam} Jam</b></p>
-        <p class="text-base font-bold text-emerald-700 mt-1">Total Tagihan: Rp ${hasil.total.toLocaleString()}</p>
-      `;
-
+      resDiv.innerHTML = `<p class="font-bold text-blue-700">✓ Selesai!</p><p>Plat: <b>${item.plat}</b> (${hasil.durasiJam} Jam)</p><p class="font-bold text-emerald-700 mt-1">Total: Rp ${hasil.total.toLocaleString()}</p>`;
       document.getElementById('kodeKeluar').value = '';
     });
 
-    // Form 3: Tiket Hilang
     document.getElementById('formHilang').addEventListener('submit', (e) => {
       e.preventDefault();
       const plat = document.getElementById('platHilang').value.trim().toUpperCase();
@@ -301,10 +364,9 @@
       resDiv.classList.remove('hidden');
 
       const item = daftarTransaksi.find(t => t.plat === plat && t.status === 'MASUK');
-
       if (!item) {
         resDiv.className = "mt-4 p-4 bg-red-50 rounded text-sm border border-red-200 text-red-600 font-bold";
-        resDiv.innerHTML = "❌ Kendaraan dengan plat nomor tersebut tidak ditemukan di area parkir!";
+        resDiv.innerHTML = "❌ Kendaraan tidak ditemukan di area parkir!";
         return;
       }
 
@@ -315,24 +377,15 @@
       item.waktuKeluar = hasil.waktuKeluar;
       item.totalBayar = grandTotal;
       item.status = 'HILANG';
-
       simpanData();
 
       resDiv.className = "mt-4 p-4 bg-amber-50 rounded text-sm border border-amber-200";
-      resDiv.innerHTML = `
-        <p class="font-bold text-amber-800">✓ Tiket Hilang Diproses!</p>
-        <p class="mt-1">Plat: <b>${item.plat}</b> (${item.jenis})</p>
-        <p>Biaya Parkir Normal: Rp ${hasil.total.toLocaleString()}</p>
-        <p>Denda Tiket Hilang: <b class="text-red-600">Rp ${denda.toLocaleString()}</b></p>
-        <hr class="my-2 border-amber-300">
-        <p class="text-base font-bold text-emerald-700">Total Tagihan: Rp ${grandTotal.toLocaleString()}</p>
-      `;
-
+      resDiv.innerHTML = `<p class="font-bold text-amber-800">✓ Tiket Hilang Diproses!</p><p>Denda: Rp ${denda.toLocaleString()}</p><p class="font-bold text-emerald-700 mt-1">Total: Rp ${grandTotal.toLocaleString()}</p>`;
       document.getElementById('platHilang').value = '';
     });
 
-    // Inisialisasi awal saat halaman di-load
-    renderUI();
+    // Inisialisasi awal saat halaman dimuat
+    checkAuthStatus();
   </script>
 </body>
 </html>
